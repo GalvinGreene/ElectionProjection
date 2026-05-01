@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Federal Election Projection</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; background: #f4f7fc; color: #1f2937; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      .card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; }
+      input { margin: 4px; padding: 6px; }
+      button { padding: 8px 10px; }
+    </style>
+  </head>
+  <body>
+    <h1>Federal Election Projection Dashboard</h1>
+    <p><b>Simple startup:</b> run <code>python start.py</code></p>
+
+    <div class="card">
+      <h2>Add Poll (Manual Background Input)</h2>
+      <form method="post" action="/polls/add">
+        <input name="pollster" placeholder="Pollster" required>
+        <input name="race_id" placeholder="US-HOUSE-VA-07" required>
+        <input name="candidate" placeholder="Candidate" required>
+        <input name="party" placeholder="DEM/REP" required>
+        <input name="vote_share" type="number" step="0.1" placeholder="Vote %" required>
+        <input name="sample_size" type="number" placeholder="Sample" required>
+        <input name="field_date" type="date" required>
+        <input name="source_url" placeholder="Source URL">
+        <button type="submit">Add Poll</button>
+      </form>
+      <form method="post" action="/polls/background-refresh">
+        <button type="submit">Run Poll Scrape in Background</button>
+      </form>
+    </div>
+
+    <div class="grid" style="margin-top:20px;">
+      <div class="card"><h2>Horse Race Chart</h2>{% if race_chart %}{{ race_chart|safe }}{% else %}<p>No polling data loaded.</p>{% endif %}</div>
+      <div class="card"><h2>Seat Distribution</h2>{% if seat_chart %}{{ seat_chart|safe }}{% else %}<p>No projection data loaded.</p>{% endif %}</div>
+    </div>
+
+    <div class="grid" style="margin-top:20px;">
+      <div class="card"><h2>House Map</h2>{% if house_map %}{{ house_map|safe }}{% else %}<p>No House projections loaded.</p>{% endif %}</div>
+      <div class="card"><h2>Senate Map</h2>{% if senate_map %}{{ senate_map|safe }}{% else %}<p>No Senate projections loaded.</p>{% endif %}</div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h2>Race Win Probabilities</h2>
+      <table>
+        <tr><th>Race</th><th>Candidate</th><th>Party</th><th>Projected Share</th><th>Win %</th></tr>
+        {% for p in projections %}
+        <tr><td>{{ p.race_id }}</td><td>{{ p.candidate }}</td><td>{{ p.party }}</td><td>{{ '%.2f'|format(p.projected_share) }}</td><td>{{ '%.2f'|format(p.win_probability) }}</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <h2>Campaign Finance (Latest Reports)</h2>
+      <table>
+        <tr><th>Candidate</th><th>Party</th><th>Date</th><th>Receipts</th><th>Disbursements</th><th>Cash on Hand</th></tr>
+        {% for row in finance %}
+        <tr><td>{{ row[0] }}</td><td>{{ row[1] }}</td><td>{{ row[2] }}</td><td>{{ '${:,.0f}'.format(row[3]) }}</td><td>{{ '${:,.0f}'.format(row[4]) }}</td><td>{{ '${:,.0f}'.format(row[5]) }}</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+  </body>
+</html>
